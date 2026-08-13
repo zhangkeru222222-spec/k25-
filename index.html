@@ -4,7 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>SCUD WORK · 企业智能工作台 Demo</title>
+<link rel="icon" href="logo.png?v=2" type="image/png">
+<link rel="shortcut icon" href="logo.png?v=2" type="image/png">
+  <title>SCUD WORK · 企业智能工作台</title>
   <style>
     /* =========================================================
        SCUD WORK 单文件交互 Demo
@@ -224,6 +226,11 @@
     .workspace-topbar { position: relative; z-index: 20; display: flex; align-items: center; justify-content: flex-start; height: var(--top-h); padding: 0 var(--space-3); border-bottom: 1px solid rgba(232,235,240,.9); }
     .reopen-history { position: absolute; left: 18px; display: none; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink-2); background: #fff; box-shadow: var(--shadow-sm); cursor: pointer; }
     .history-collapsed .reopen-history { display: grid; place-items: center; }
+    .top-new-chat { position: relative; display: none; place-items: center; width: 36px; height: 36px; margin-left: 58px; border: 0; border-radius: 10px; color: #4b5563; background: transparent; cursor: pointer; transition: color .18s ease, background .18s ease; }
+    .top-new-chat:hover { color: #111827; background: #f3f4f6; }
+    .top-new-chat .top-tooltip { position: absolute; top: calc(100% + 8px); left: 50%; z-index: 80; padding: 5px 10px; border-radius: 6px; color: #fff; background: #111827; font-size: 11px; line-height: 1.2; white-space: nowrap; opacity: 0; pointer-events: none; transform: translate(-50%, -3px); transition: opacity .16s ease, transform .16s ease; box-shadow: 0 5px 14px rgba(15,23,42,.18); }
+    .top-new-chat:hover .top-tooltip, .top-new-chat:focus-visible .top-tooltip { opacity: 1; transform: translate(-50%, 0); }
+    .history-collapsed .top-new-chat { display: grid; }
 
     /* 参考图 2：个人信息改为顶栏右侧的轻量工具组，不再使用大卡片。 */
     .top-utilities { position: fixed; right: var(--space-2); top: 0; z-index: 52; display: flex; align-items: center; gap: var(--space-1); height: var(--top-h); }
@@ -1048,33 +1055,31 @@
     /* Landing page refinement: replace the dotted mesh with a smooth VI-red glow. */
     .brand-wave-final,
     .dot-wave { display: none !important; }
-    .home-view::before {
-      content: "";
-      position: absolute;
-      z-index: 0;
-      top: 18px;
-      left: 50%;
-      width: min(980px, 112%);
-      height: 560px;
-      border-radius: 50%;
-      background: radial-gradient(ellipse at center,
-        rgba(240, 5, 40, .13) 0%,
-        rgba(240, 5, 40, .08) 34%,
-        rgba(201, 0, 32, .035) 56%,
-        transparent 74%);
-      filter: blur(28px);
-      pointer-events: none;
-      transform: translateX(-50%);
-    }
     .home-view > .welcome,
     .home-view > .composer-card { position: relative; z-index: 1; }
-    .hero-wordmark-v2 { filter: drop-shadow(0 14px 32px rgba(201, 0, 32, .14)); }
+    .hero-wordmark-v2 { filter: none; }
     .composer-card {
       width: min(780px, 100%);
       padding: 16px;
       border-radius: 24px;
       background: #fff;
       box-shadow: 0 24px 60px rgba(201, 0, 32, .13), 0 8px 24px rgba(21, 26, 38, .06);
+    }
+    /* 主页视觉收敛：红色光晕只围绕输入卡片，不干扰招呼语阅读。 */
+    .home-view .welcome-line {
+      position: relative;
+      z-index: 2;
+      margin-top: -18px;
+      margin-bottom: 36px;
+      filter: none !important;
+      text-shadow: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+    .home-view > .welcome > .composer-card {
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 24px 60px rgba(201, 0, 32, .14), 0 8px 24px rgba(240, 5, 40, .08), 0 0 72px rgba(240, 5, 40, .08);
     }
     .input-shell {
       min-height: 150px;
@@ -1349,6 +1354,78 @@
       .home-view > .composer-card.fade-in-up { animation: none; opacity: 1; transform: none; }
     }
 
+    /* 最终主页层级：标题无光晕、略向上；红色光晕只保留在输入卡片周围。 */
+    html:not(.dark) .app-shell:not(.is-chatting)::before {
+      background: linear-gradient(180deg, #fbfcfd 0%, #f7f8fa 100%) !important;
+    }
+    html.dark .app-shell:not(.is-chatting)::before {
+      background: linear-gradient(180deg, #18181b 0%, #121212 100%) !important;
+    }
+    .home-view .welcome-line {
+      margin-top: -18px !important;
+      margin-bottom: 36px !important;
+      filter: none !important;
+      text-shadow: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+    .home-view > .welcome > .composer-card {
+      isolation: isolate;
+      box-shadow: 0 10px 28px rgba(21, 26, 38, .06) !important;
+    }
+    /* 主页输入卡片：标准椭圆弥散光晕，居中包围整张卡片。 */
+    .home-view > .welcome > .composer-card::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      left: 50%;
+      top: 50%;
+      width: min(900px, 125vw);
+      height: 330px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center,
+        rgba(251, 113, 133, .42) 0%,
+        rgba(248, 113, 113, .28) 38%,
+        rgba(249, 168, 212, .16) 62%,
+        transparent 78%);
+      filter: blur(86px);
+      opacity: .86;
+      pointer-events: none;
+    }
+    /* 椭圆中心亮粉核心，保持轻盈透亮。 */
+    .home-view > .welcome > .composer-card::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      left: 50%;
+      top: 50%;
+      width: min(440px, 72vw);
+      height: 160px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(251, 113, 133, .28), rgba(248, 113, 113, .10) 58%, transparent 78%);
+      filter: blur(68px);
+      opacity: .78;
+      pointer-events: none;
+    }
+    /* 首页输入区保持紧凑，只保留右侧主操作按钮。 */
+    .home-view .input-shell {
+      min-height: 104px !important;
+      padding: 12px 14px 54px !important;
+      border-radius: 18px;
+    }
+    .home-view #taskInput {
+      min-height: 54px !important;
+      max-height: 150px;
+      line-height: 1.55;
+    }
+    .home-view .input-bottom {
+      left: auto;
+      right: 14px;
+      bottom: 12px;
+    }
+
     /* 对话工作区：去除外层卡片边界，让消息内容在主区域内全屏平铺。 */
     .app-shell.is-chatting .main-scroll {
       padding: 0;
@@ -1473,6 +1550,23 @@
       width: var(--sidebar-mini-w);
       box-sizing: border-box;
     }
+    .app-shell.history-collapsed .integrated-sidebar-header { min-height: 0; padding: 12px 0 10px; gap: 8px; }
+    .app-shell.history-collapsed .integrated-sidebar-header .brand-mark { display: none; }
+    .app-shell.history-collapsed .integrated-sidebar-header .history-title-row { display: flex; width: 100%; }
+    .app-shell.history-collapsed .integrated-sidebar-header .history-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+    .app-shell.history-collapsed .integrated-sidebar-header .new-chat,
+    .app-shell.history-collapsed .integrated-sidebar-header .collapse-btn { position: relative; display: grid !important; place-items: center; width: 36px; height: 36px; margin: 0; padding: 0; border: 0; border-radius: 10px; }
+    .app-shell.history-collapsed .integrated-sidebar-header .new-chat { order: 0; color: #4b5563; background: transparent; }
+    .app-shell.history-collapsed .integrated-sidebar-header .new-chat:hover { color: #111827; background: #f3f4f6; }
+    .app-shell.history-collapsed .integrated-sidebar-header .collapse-btn { order: 1; color: var(--ink-2); background: transparent; }
+    .app-shell.history-collapsed .integrated-sidebar-header::after { content: ""; display: block; width: 32px; height: 1px; margin-top: 2px; background: var(--line); }
+    .mini-sidebar-tooltip { position: absolute; left: calc(100% + 10px); top: 50%; z-index: 80; padding: 5px 10px; border-radius: 6px; color: #fff; background: #111827; font-size: 11px; line-height: 1.2; white-space: nowrap; opacity: 0; pointer-events: none; transform: translateY(-50%) translateX(-3px); transition: opacity .15s ease, transform .15s ease; box-shadow: 0 6px 16px rgba(15,23,42,.18); }
+    .mini-sidebar-tooltip::before { content: ""; position: absolute; left: -5px; top: 50%; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 5px solid #111827; transform: translateY(-50%); }
+    .app-shell.history-collapsed .integrated-sidebar-header .new-chat:hover .mini-sidebar-tooltip,
+    .app-shell.history-collapsed .integrated-sidebar-header .new-chat:focus-visible .mini-sidebar-tooltip { opacity: 1; transform: translateY(-50%) translateX(0); }
+    /* The mini sidebar owns these controls; avoid a duplicate pair in the workspace header. */
+    .app-shell.history-collapsed .workspace-topbar .reopen-history,
+    .app-shell.history-collapsed .workspace-topbar .top-new-chat { display: none !important; }
     .app-shell.history-collapsed .integrated-sidebar-main {
       overflow: visible;
     }
@@ -1798,7 +1892,7 @@
       height: auto;
       min-height: 0;
       margin: 0 auto;
-      padding: 32px 8px 152px;
+       padding: 16px 8px 152px;
       box-sizing: border-box;
       overflow-y: auto;
       overscroll-behavior: contain;
@@ -2205,6 +2299,8 @@
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></symbol>
     <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H6l-4 2 1.3-4A9 9 0 1 1 21 12Z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></symbol>
     <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></symbol>
     <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
     <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v5h5M10 11l-2 2 2 2m4-4 2 2-2 2"/></symbol>
     <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10m6 10V4m6 16v-7m5 7H2"/></symbol>
@@ -2232,6 +2328,10 @@
     <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
     <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 9-4 3 4 3m8-6 4 3-4 3m-2-9-4 12"/></symbol>
     <symbol id="i-workflow" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M8 6h8M7 8l4 8m6-8-4 8"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m12 4 9 16H3Z"/><path d="M12 9v5m0 3h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
     <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 5"/></symbol>
     <symbol id="i-automation" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/><circle cx="16.5" cy="16.5" r="2.5"/><path d="M16.5 15v1.5l1 1"/></symbol>
     <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1.1a1.9 1.9 0 0 0 1.6-3c-.7-1-.1-2.4 1.1-2.5H18A3 3 0 0 0 21 12a9 9 0 0 0-9-9Z"/><circle cx="7.5" cy="10" r=".7"/><circle cx="10" cy="6.8" r=".7"/><circle cx="15" cy="7.5" r=".7"/></symbol>
@@ -2275,6 +2375,7 @@
     <main class="workspace flex-1 h-screen relative flex flex-col overflow-hidden bg-white dark:bg-zinc-900">
       <header class="workspace-topbar">
         <button class="reopen-history" id="reopenHistory" aria-label="打开最近对话"><svg class="icon"><use href="#i-expand"/></svg></button>
+        <button class="top-new-chat" id="topNewChat" aria-label="新建对话"><svg class="icon"><use href="#i-plus"/></svg><span class="top-tooltip">新建对话</span></button>
         <button class="mobile-right-toggle" id="mobileRightToggle" aria-label="打开能力面板"><svg class="icon"><use href="#i-spark"/></svg></button>
         <div class="top-utilities" aria-label="个人工具栏">
           <button class="utility-btn" id="openMailDrawer" aria-label="打开邮件面板"><svg class="icon small"><use href="#i-mail"/></svg></button>
@@ -2317,7 +2418,6 @@
             <div class="input-shell">
               <textarea id="taskInput" maxlength="1200" placeholder="例如：帮我生成一份质量月活动物料方案，并输出可执行清单..."></textarea>
               <div class="input-bottom">
-                <div class="quick-prompts"><button class="quick-prompt" data-prompt="帮我生成本周项目周报，并提炼风险与待办。">生成周报</button><button class="quick-prompt" data-prompt="请整理这份会议记录，提取关键决策与责任人。">整理会议纪要</button><button class="quick-prompt" data-prompt="分析我上传的数据，给出趋势、异常和改进建议。">数据分析</button><button class="quick-prompt" data-prompt="请为新产品输出一套简约、专业、符合公司VI的界面方案。">设计方案</button><button class="attach-btn" id="attachButton" aria-label="上传附件"><svg class="icon small"><use href="#i-plus"/></svg></button></div>
                 <button class="start-btn" id="startTask"><svg class="icon small"><use href="#i-send"/></svg><span>开始任务</span></button>
               </div>
             </div>
@@ -2326,7 +2426,6 @@
         </section>
 
         <section class="chat-view view-hidden workspace-content w-full max-w-4xl mx-auto flex-1 pb-32 pt-6 px-4" id="chatView" aria-live="polite">
-          <div class="chat-header"><div class="chat-title-block"><span class="expert-avatar"><svg class="icon"><use href="#i-spark"/></svg></span><div><h2 id="activeChatTitle">新对话</h2><p id="activeExpertLabel">SCUD 企业智能助手 · 智能匹配</p></div></div><button class="back-home" id="backHome"><svg class="icon small"><use href="#i-chevron"/></svg><span>返回工作台</span></button></div>
           <div class="messages message-list-container" id="messages"></div>
           <aside class="message-minimap" id="messageMinimap" aria-label="消息导航"><div class="minimap-scroll" id="minimapScroll"></div><div class="minimap-preview" id="minimapPreview" aria-live="polite"></div></aside>
           <div class="mini-composer">
@@ -2339,6 +2438,88 @@
           <div class="expert-page-head"><div><span class="expert-eyebrow"><svg class="icon tiny"><use href="#i-users"/></svg>专家库</span><h1 id="expertPageTitle">为不同任务选择专家能力</h1><p>把专业场景沉淀成可复用的企业智能能力。</p></div><button class="create-expert" data-toast="创建专家功能为案例扩展入口"><svg class="icon small"><use href="#i-plus"/></svg>创建专家</button></div>
           <div class="expert-tools"><label class="expert-search"><svg class="icon small"><use href="#i-search"/></svg><input id="expertSearch" type="search" placeholder="搜索专家、角色或能力"></label><div class="expert-filters" id="expertFilters"><button class="expert-filter active" data-expert-filter="全部">全部</button><button class="expert-filter" data-expert-filter="研发">研发</button><button class="expert-filter" data-expert-filter="产品">产品</button><button class="expert-filter" data-expert-filter="数据">数据</button><button class="expert-filter" data-expert-filter="设计">设计</button><button class="expert-filter" data-expert-filter="质量">质量</button><button class="expert-filter" data-expert-filter="文档">文档</button></div></div>
           <div class="expert-library-grid" id="expertLibraryGrid"></div>
+        </section>
+
+        <section class="skill-page view-hidden" id="skillPage" aria-labelledby="skillPageTitle">
+          <div class="skill-page-head">
+            <div>
+              <h1 id="skillPageTitle">把常用能力做成可复用技能</h1>
+              <p>把专业场景沉淀为可直接调用的 AI 自动化技能。</p>
+            </div>
+            <button class="skill-create-btn" data-toast="新建技能功能为案例扩展入口"><svg class="icon small"><use href="#i-plus"/></svg>新建技能</button>
+          </div>
+          <div class="skill-tools">
+            <label class="skill-search"><svg class="icon small"><use href="#i-search"/></svg><input id="skillSearch" type="search" placeholder="搜索技能名称、描述或标签"></label>
+            <div class="skill-filters" id="skillFilters">
+              <button class="skill-filter active" data-skill-filter="全部">全部</button><button class="skill-filter" data-skill-filter="开发">开发</button><button class="skill-filter" data-skill-filter="创作">创作</button><button class="skill-filter" data-skill-filter="分析">分析</button><button class="skill-filter" data-skill-filter="设计">设计</button><button class="skill-filter" data-skill-filter="工具">工具</button><button class="skill-filter" data-skill-filter="安全">安全</button><button class="skill-filter" data-skill-filter="文档">文档</button><button class="skill-filter" data-skill-filter="多媒体">多媒体</button><button class="skill-filter" data-skill-filter="AI">AI</button>
+            </div>
+          </div>
+          <div class="skill-grid" id="skillGrid"></div>
+        </section>
+
+        <section class="automation-page view-hidden" id="automationPage" aria-labelledby="automationPageTitle">
+          <div class="automation-page-head">
+            <div>
+              <span class="automation-eyebrow"><svg class="icon tiny"><use href="#i-workflow"/></svg>⚡ 自动化</span>
+              <h1 id="automationPageTitle">让重复工作自动跑起来</h1>
+              <p>创建、监控和管理周期性任务。</p>
+            </div>
+            <button class="automation-create-btn" id="automationCreateButton"><svg class="icon small"><use href="#i-plus"/></svg>新建自动化</button>
+          </div>
+
+          <div class="automation-metric-grid" aria-label="自动化状态概览">
+            <article class="automation-metric-card"><div><strong>7</strong><span>运行中</span><small>按计划执行</small></div><span class="automation-metric-icon metric-green"><svg class="icon small"><use href="#i-play"/></svg></span></article>
+            <article class="automation-metric-card"><div><strong>2</strong><span>已暂停</span><small>等待恢复</small></div><span class="automation-metric-icon metric-yellow"><svg class="icon small"><use href="#i-pause"/></svg></span></article>
+            <article class="automation-metric-card"><div><strong>2</strong><span>失败</span><small>需要处理</small></div><span class="automation-metric-icon metric-red"><svg class="icon small"><use href="#i-alert"/></svg></span></article>
+            <article class="automation-metric-card"><div><strong>33</strong><span>今日执行</span><small>包含手动触发</small></div><span class="automation-metric-icon metric-blue"><svg class="icon small"><use href="#i-check"/></svg></span></article>
+          </div>
+
+          <section class="automation-section">
+            <div class="automation-section-head"><div><h2>自动化模板</h2><p>从常见任务开始，自动预填触发条件、执行动作和输出位置。</p></div><span class="automation-recommend-badge">5 个推荐流程</span></div>
+            <div class="automation-template-grid" id="automationTemplateGrid"></div>
+          </section>
+
+          <section class="automation-section automation-tasks-section">
+            <div class="automation-section-head automation-task-head"><div><h2>我的自动化</h2><p>查看任务状态并快速处理异常。</p></div></div>
+            <div class="automation-task-tools"><label class="automation-search"><svg class="icon small"><use href="#i-search"/></svg><input id="automationSearch" type="search" placeholder="搜索自动化任务、触发方式或工作空间"></label><div class="automation-filters" id="automationFilters"><button class="automation-filter active" data-automation-filter="全部">全部</button><button class="automation-filter" data-automation-filter="running">运行中</button><button class="automation-filter" data-automation-filter="paused">已暂停</button><button class="automation-filter" data-automation-filter="failed">失败</button></div></div>
+            <div class="automation-task-grid" id="automationTaskGrid"></div>
+          </section>
+        </section>
+
+        <section class="production-page view-hidden" id="productionPage" aria-labelledby="productionPageTitle">
+          <div class="production-page-head">
+            <div>
+              <span class="production-eyebrow"><svg class="icon tiny"><use href="#i-automation"/></svg>⚙️ AI 生产</span>
+              <h1 id="productionPageTitle">AI 智能生产管理平台</h1>
+              <p>一站式管理生产排产、质量检测和设备运维等智能化场景。</p>
+            </div>
+          </div>
+          <div class="production-tools"><label class="production-search"><svg class="icon small"><use href="#i-search"/></svg><input id="productionSearch" type="search" placeholder="搜索功能模块"></label><div class="production-filters" id="productionFilters"><button class="production-filter active" data-production-filter="全部">全部</button><button class="production-filter" data-production-filter="排产">排产</button><button class="production-filter" data-production-filter="质量">质量</button><button class="production-filter" data-production-filter="设备">设备</button><button class="production-filter" data-production-filter="能耗">能耗</button><button class="production-filter" data-production-filter="物料">物料</button><button class="production-filter" data-production-filter="工艺">工艺</button></div></div>
+          <div class="production-grid" id="productionGrid"></div>
+        </section>
+
+        <section class="design-page view-hidden" id="designPage" aria-labelledby="designPageTitle">
+          <div class="design-page-head">
+            <div>
+              <span class="design-eyebrow"><svg class="icon tiny"><use href="#i-palette"/></svg>AI 设计</span>
+              <h1 id="designPageTitle">选择设计模块开始创作</h1>
+              <p>覆盖结构、电路、软件、工艺四大设计领域，AI 赋能全流程。</p>
+            </div>
+          </div>
+          <div class="design-grid" id="designGrid"></div>
+        </section>
+
+        <section class="knowledge-page view-hidden" id="knowledgePage" aria-labelledby="knowledgePageTitle">
+          <div class="knowledge-page-head">
+            <div>
+              <span class="knowledge-eyebrow"><svg class="icon tiny"><use href="#i-folder"/></svg>知识库</span>
+              <h1 id="knowledgePageTitle">文档库</h1>
+              <p>统一管理 AI 任务产生的文件、图表和本地素材。</p>
+            </div>
+            <button class="knowledge-upload" id="knowledgeUpload"><svg class="icon small"><use href="#i-plus"/></svg>上传文件</button>
+          </div>
+          <div class="knowledge-tools"><label class="knowledge-search"><svg class="icon small"><use href="#i-search"/></svg><input id="knowledgeSearch" type="search" placeholder="搜索文件名、描述或分类"></label><div class="knowledge-tool-right"><div class="knowledge-filters" id="knowledgeFilters"><button class="knowledge-filter active" data-knowledge-filter="全部">全部</button><button class="knowledge-filter" data-knowledge-filter="文档">文档</button><button class="knowledge-filter" data-knowledge-filter="报告">报告</button><button class="knowledge-filter" data-knowledge-filter="设计">设计</button><button class="knowledge-filter" data-knowledge-filter="代码">代码</button><button class="knowledge-filter" data-knowledge-filter="数据">数据</button></div><div class="knowledge-view-toggle"><button class="knowledge-view-btn active" data-knowledge-view="grid" aria-label="网格视图"><svg class="icon tiny"><use href="#i-grid"/></svg></button><button class="knowledge-view-btn" data-knowledge-view="list" aria-label="列表视图"><svg class="icon tiny"><use href="#i-list"/></svg></button></div></div></div>
+          <div class="knowledge-grid" id="knowledgeGrid"></div>
         </section>
       </div>
     </main>
@@ -2397,6 +2578,62 @@
       })(),
       activeMessageIndex: -1,
       expertFilter: '全部',
+      skillFilter: '全部',
+      skillSearch: '',
+      automationFilter: '全部',
+      automationSearch: '',
+      productionFilter: '全部',
+      productionSearch: '',
+      productionModules: [
+        { name: '生产排产与预警', desc: '结合订单、产能与交付计划，智能生成排产方案并提前识别风险。', category: '排产', status: 'available', icon: 'i-history', tone: 'blue' },
+        { name: '智能质检', desc: '沉淀质量标准，辅助检测异常并快速定位需要复核的环节。', category: '质量', status: 'upcoming', icon: 'i-check', tone: 'green' },
+        { name: '设备预测维护', desc: '分析设备运行数据，提前发现故障趋势并安排维护计划。', category: '设备', status: 'upcoming', icon: 'i-automation', tone: 'orange' },
+        { name: '能耗优化', desc: '追踪生产能耗与峰谷变化，输出节能优化建议和执行清单。', category: '能耗', status: 'upcoming', icon: 'i-chart', tone: 'cyan' },
+        { name: '物料智能调配', desc: '根据库存、需求与生产节奏，辅助完成物料调度和补给提醒。', category: '物料', status: 'upcoming', icon: 'i-workflow', tone: 'purple' },
+        { name: '工艺参数优化', desc: '关联工艺参数与生产结果，帮助团队持续优化标准作业流程。', category: '工艺', status: 'upcoming', icon: 'i-spark', tone: 'pink' }
+      ],
+      designModules: [
+        { id: 'structure', title: '结构设计', subtitle: '3D 建模 / 仿真', desc: '三维结构建模、装配分析、干涉检查与力学仿真，支持 GLB/OBJ/STL 格式导入与在线预览。', icon: 'i-box', tone: 'blue', rating: '4.9', available: true },
+        { id: 'circuit', title: '电路设计', subtitle: '原理图 / PCB', desc: '电路原理图绘制、PCB 布局布线、信号完整性分析与 BOM 表自动生成。', icon: 'i-automation', tone: 'green', rating: '4.8', available: false },
+        { id: 'software', title: '软件设计', subtitle: '嵌入式 / 应用层', desc: '嵌入式固件开发、BMS 算法设计、通信协议栈搭建与应用层软件架构规划。', icon: 'i-code', tone: 'indigo', rating: '4.7', available: false },
+        { id: 'process', title: '工艺设计', subtitle: '制造 / 装配', desc: '生产工艺流程规划、工装夹具设计、装配工艺优化与制造成本评估。', icon: 'i-workflow', tone: 'orange', rating: '4.8', available: false }
+      ],
+      knowledgeFilter: '全部',
+      knowledgeSearch: '',
+      knowledgeView: 'grid',
+      knowledgeFiles: [
+        { name: '质量月活动方案.docx', desc: '活动背景、目标、排期与物料清单', category: '报告', size: '860 KB', date: '今天 10:21', icon: 'i-doc', tone: 'purple' },
+        { name: '智能手环PRD_v2.1.docx', desc: '产品需求、功能矩阵和里程碑', category: '文档', size: '1.2 MB', date: '昨天 18:04', icon: 'i-doc', tone: 'purple' },
+        { name: '电摩市场调研报告.pdf', desc: '市场规模、竞品分析、用户画像', category: '报告', size: '2.4 MB', date: '周三 14:12', icon: 'i-doc', tone: 'purple' },
+        { name: '组件规范说明.md', desc: 'Vue 组件设计规范与样式约束', category: '代码', size: '42 KB', date: '周一 09:33', icon: 'i-code', tone: 'blue' },
+        { name: '年度销售趋势图.png', desc: '季度趋势与渠道变化', category: '数据', size: '1.5 MB', date: '今天 11:20', icon: 'i-image', tone: 'purple' },
+        { name: '竞品功能矩阵.xlsx', desc: '主要竞品功能与价格对比', category: '数据', size: '62 KB', date: '昨天 16:42', icon: 'i-chart', tone: 'purple' },
+        { name: '堆积柱状图方案.fig', desc: '报表图表配色与布局方案', category: '设计', size: '4.1 MB', date: '周二 20:19', icon: 'i-chart', tone: 'purple' },
+        { name: '质量指标看板.html', desc: '可交互数据看板页面', category: '代码', size: '18 KB', date: '周一 17:06', icon: 'i-code', tone: 'blue' }
+      ],
+      automationTemplates: [
+        { name: '每日销售数据日报', desc: '自动汇总销售数据，生成日报并发送到团队空间。', icon: 'i-chart', tone: 'blue', tags: ['数据', '报告'] },
+        { name: '文件变更摘要', desc: '监控知识库文件变化，提炼本次更新的重点内容。', icon: 'i-file-code', tone: 'purple', tags: ['文档库', '通知'] },
+        { name: 'PRD 更新提醒', desc: '发现产品文档更新后，自动提醒相关协作成员。', icon: 'i-doc', tone: 'orange', tags: ['产品', '提醒'] },
+        { name: '竞品监控报告', desc: '定期收集竞品动态，整理成可阅读的分析报告。', icon: 'i-search', tone: 'green', tags: ['市场', '分析'] },
+        { name: '周报自动生成', desc: '汇总项目进展、风险与待办，快速生成团队周报。', icon: 'i-history', tone: 'red', tags: ['项目', '报告'] }
+      ],
+      automations: [
+        { name: '每日电池行业信息采集', status: 'running', trigger: '每天 09:00', workspace: '市场情报', desc: '收集行业新闻并整理为可读摘要。', icon: 'i-chart', tone: 'blue' },
+        { name: '每周质量日物料检查', status: 'running', trigger: '每周五 16:00', workspace: '质量管理', desc: '检查物料清单并生成异常项提醒。', icon: 'i-check', tone: 'green' },
+        { name: '销售数据日报生成', status: 'paused', trigger: '每天 18:00', workspace: '销售运营', desc: '汇总销售数据并同步到团队知识库。', icon: 'i-doc', tone: 'orange' },
+        { name: '竞品价格监控', status: 'failed', trigger: '每周一 10:00', workspace: '市场情报', desc: '采集竞品价格变化并输出对比报告。', icon: 'i-alert', tone: 'red' }
+      ],
+      skills: [
+        { name: '代码审查助手', desc: '检查代码质量、潜在缺陷与性能问题，输出清晰的修改建议。', category: '开发', status: 'enabled', icon: 'i-code', tone: 'blue', action: '配置' },
+        { name: '长文档写作', desc: '将零散资料整理成结构完整、逻辑清晰的长篇文档。', category: '文档', status: 'enabled', icon: 'i-doc', tone: 'purple', action: '配置' },
+        { name: '数据洞察分析', desc: '从表格与业务数据中提炼趋势、异常和可执行洞察。', category: '分析', status: 'ready', icon: 'i-chart', tone: 'green', action: '添加' },
+        { name: 'UI 设计生成', desc: '根据产品目标生成界面结构、视觉方向与交互建议。', category: '设计', status: 'ready', icon: 'i-palette', tone: 'orange', action: '添加' },
+        { name: '图片理解', desc: '识别图片中的文字、结构和关键信息，辅助内容处理。', category: '多媒体', status: 'ready', icon: 'i-image', tone: 'red', action: '添加' },
+        { name: 'SQL 报表助手', desc: '根据业务问题生成 SQL 查询并整理成可读报表。', category: '开发', status: 'ready', icon: 'i-file-code', tone: 'blue', action: '添加' },
+        { name: '安全检查', desc: '检查配置与内容中的风险点，提供基础安全改进建议。', category: '安全', status: 'ready', icon: 'i-bell', tone: 'green', action: '添加' },
+        { name: '提示词优化', desc: '优化任务描述、上下文和输出约束，让 AI 更准确执行。', category: 'AI', status: 'ready', icon: 'i-spark', tone: 'purple', action: '添加' }
+      ],
       activeChatId: null,
       generationToken: 0,
       failOnce: false,
@@ -2451,6 +2688,13 @@
       if (titleRow) {
         const heading = $('h2', titleRow);
         if (heading) heading.textContent = '对话';
+        const newChat = $('.new-chat', titleRow);
+        if (newChat && !$('.mini-sidebar-tooltip', newChat)) {
+          const tip = document.createElement('span');
+          tip.className = 'mini-sidebar-tooltip';
+          tip.textContent = '新建对话';
+          newChat.appendChild(tip);
+        }
       }
       const labels = ['对话', '技能广场', '专家库', '自动化', 'AI生产', 'AI设计', '知识库'];
       $$('.nav-btn', menu).forEach((button, index) => {
@@ -2633,6 +2877,170 @@
       }).join('') : '<div style="grid-column:1/-1;padding:64px;text-align:center;color:var(--muted)">没有找到符合条件的专家</div>';
     }
 
+    function renderSkillSquare() {
+      const grid = $('#skillGrid');
+      if (!grid) return;
+      const query = (state.skillSearch || '').trim().toLowerCase();
+      const list = state.skills.filter(skill => {
+        const byCategory = state.skillFilter === '全部' || skill.category === state.skillFilter;
+        const byQuery = `${skill.name}${skill.desc}${skill.category}`.toLowerCase().includes(query);
+        return byCategory && byQuery;
+      });
+      grid.innerHTML = list.length ? list.map(skill => `
+        <article class="skill-card">
+          <div class="skill-card-head"><span class="skill-icon-box ${skill.tone || ''}"><svg class="icon"><use href="#${skill.icon}"/></svg></span><span class="skill-status ${skill.status === 'enabled' ? 'enabled' : ''}">${skill.status === 'enabled' ? '已启用' : skill.category}</span></div>
+          <h3>${escapeHtml(skill.name)}</h3><p>${escapeHtml(skill.desc)}</p>
+          <div class="skill-card-foot"><span class="skill-category">${escapeHtml(skill.category)}</span><button class="skill-action" data-skill-action="${escapeHtml(skill.name)}">${skill.action}</button></div>
+        </article>`).join('') : '<div style="grid-column:1/-1;padding:64px;text-align:center;color:var(--muted)">没有找到符合条件的技能</div>';
+    }
+
+    function renderAutomationPage() {
+      const templateGrid = $('#automationTemplateGrid');
+      const taskGrid = $('#automationTaskGrid');
+      if (templateGrid) templateGrid.innerHTML = state.automationTemplates.map(template => `
+        <article class="automation-template-card" data-template-name="${escapeHtml(template.name)}">
+          <div class="automation-template-top"><span class="automation-template-icon ${template.tone || ''}"><svg class="icon small"><use href="#${template.icon}"/></svg></span><svg class="icon tiny automation-template-arrow"><use href="#i-chevron"/></svg></div>
+          <h3>${escapeHtml(template.name)}</h3><p>${escapeHtml(template.desc)}</p>
+          <div class="automation-template-tags">${template.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join('')}</div>
+        </article>`).join('');
+      if (!taskGrid) return;
+      const query = (state.automationSearch || '').trim().toLowerCase();
+      const list = state.automations.filter(task => {
+        const byStatus = state.automationFilter === '全部' || task.status === state.automationFilter;
+        const byQuery = `${task.name}${task.trigger}${task.workspace}${task.desc}`.toLowerCase().includes(query);
+        return byStatus && byQuery;
+      });
+      const statusLabels = { running: '运行中', paused: '已暂停', failed: '失败' };
+      taskGrid.innerHTML = list.length ? list.map(task => `
+        <article class="automation-task-card">
+          <div class="automation-task-icon ${task.tone || ''}"><svg class="icon small"><use href="#${task.icon}"/></svg></div>
+          <div class="automation-task-copy"><h3>${escapeHtml(task.name)}</h3><p>${escapeHtml(task.desc)}</p><div class="automation-task-meta"><span class="automation-status ${task.status}">● ${statusLabels[task.status]}</span><span>${escapeHtml(task.trigger)}</span><span>${escapeHtml(task.workspace)}</span></div></div>
+          <button class="automation-task-action" data-automation-action="${escapeHtml(task.name)}">${task.status === 'failed' ? '处理' : task.status === 'paused' ? '恢复' : '查看'}</button>
+        </article>`).join('') : '<div class="automation-empty">没有找到符合条件的自动化任务</div>';
+    }
+
+    function showAutomationPage() {
+      state.generationToken++;
+      setLayoutState('automation');
+      $('#homeView').classList.add('view-hidden');
+      $('#chatView').classList.add('view-hidden');
+      $('#expertPage').classList.add('view-hidden');
+      $('#skillPage').classList.add('view-hidden');
+      $('#automationPage').classList.remove('view-hidden');
+      $('#productionPage').classList.add('view-hidden');
+      $('#designPage').classList.add('view-hidden');
+      $('#knowledgePage').classList.add('view-hidden');
+      $('#appShell').classList.add('right-collapsed');
+      $('#taskDrawer').classList.remove('open');
+      $('#taskDrawer').setAttribute('aria-hidden', 'true');
+      $$('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === '自动化'));
+      renderAutomationPage();
+    }
+
+    function renderProductionPage() {
+      const grid = $('#productionGrid');
+      if (!grid) return;
+      const query = (state.productionSearch || '').trim().toLowerCase();
+      const list = state.productionModules.filter(module => {
+        const byCategory = state.productionFilter === '全部' || module.category === state.productionFilter;
+        const byQuery = `${module.name}${module.desc}${module.category}`.toLowerCase().includes(query);
+        return byCategory && byQuery;
+      });
+      grid.innerHTML = list.length ? list.map(module => `
+        <article class="production-card ${module.status === 'upcoming' ? 'is-upcoming' : ''}">
+          <div class="production-card-top"><span class="production-icon ${module.tone || ''}"><svg class="icon"><use href="#${module.icon}"/></svg></span><span class="production-status">${module.status === 'available' ? '可用' : '敬请期待'}</span></div>
+          <h3>${escapeHtml(module.name)}</h3><p>${escapeHtml(module.desc)}</p>
+          <div class="production-card-foot"><span class="production-category"><svg class="icon tiny"><use href="#${module.icon}"/></svg>${escapeHtml(module.category)}</span><button class="production-action ${module.status === 'available' ? 'available' : 'upcoming'}" data-production-action="${escapeHtml(module.name)}">${module.status === 'available' ? '进入' : '敬请期待'}</button></div>
+        </article>`).join('') : '<div class="production-empty">没有找到符合条件的功能模块</div>';
+    }
+
+    function showProductionPage() {
+      state.generationToken++;
+      setLayoutState('production');
+      $('#homeView').classList.add('view-hidden');
+      $('#chatView').classList.add('view-hidden');
+      $('#expertPage').classList.add('view-hidden');
+      $('#skillPage').classList.add('view-hidden');
+      $('#automationPage').classList.add('view-hidden');
+      $('#productionPage').classList.remove('view-hidden');
+      $('#designPage').classList.add('view-hidden');
+      $('#knowledgePage').classList.add('view-hidden');
+      $('#appShell').classList.add('right-collapsed');
+      $('#taskDrawer').classList.remove('open');
+      $('#taskDrawer').setAttribute('aria-hidden', 'true');
+      $$('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === 'AI生产'));
+      renderProductionPage();
+    }
+
+    function renderDesignPage() {
+      const grid = $('#designGrid');
+      if (!grid) return;
+      grid.innerHTML = state.designModules.map(module => `
+        <article class="design-card ${module.available ? '' : 'is-upcoming'}">
+          <div class="design-card-top"><span class="design-icon ${module.tone}"><svg class="icon"><use href="#${module.icon}"/></svg></span><span class="design-rating"><svg class="icon tiny"><use href="#i-spark"/></svg>${module.rating}</span></div>
+          <div class="design-card-copy"><div class="design-title-row"><h3>${escapeHtml(module.title)}</h3><span>${escapeHtml(module.subtitle)}</span></div><p>${escapeHtml(module.desc)}</p></div>
+          <div class="design-card-foot"><span class="design-status ${module.available ? 'available' : ''}"><svg class="icon tiny"><use href="#i-spark"/></svg>${module.available ? '可用' : '即将上线'}</span><button class="design-action ${module.available ? 'available' : 'upcoming'}" data-design-action="${escapeHtml(module.title)}"${module.available ? '' : ' disabled'}>${module.available ? '进入' : '敬请期待'}</button></div>
+        </article>`).join('');
+    }
+
+    function showDesignPage() {
+      state.generationToken++;
+      setLayoutState('design');
+      $('#homeView').classList.add('view-hidden');
+      $('#chatView').classList.add('view-hidden');
+      $('#expertPage').classList.add('view-hidden');
+      $('#skillPage').classList.add('view-hidden');
+      $('#automationPage').classList.add('view-hidden');
+      $('#productionPage').classList.add('view-hidden');
+      $('#designPage').classList.remove('view-hidden');
+      $('#knowledgePage').classList.add('view-hidden');
+      $('#appShell').classList.add('right-collapsed');
+      $('#taskDrawer').classList.remove('open');
+      $('#taskDrawer').setAttribute('aria-hidden', 'true');
+      $$('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === 'AI设计'));
+      renderDesignPage();
+    }
+
+    function renderKnowledgePage() {
+      const grid = $('#knowledgeGrid');
+      if (!grid) return;
+      const query = (state.knowledgeSearch || '').trim().toLowerCase();
+      const list = state.knowledgeFiles.filter(file => (state.knowledgeFilter === '全部' || file.category === state.knowledgeFilter) && `${file.name}${file.desc}${file.category}`.toLowerCase().includes(query));
+      grid.classList.toggle('is-list', state.knowledgeView === 'list');
+      grid.innerHTML = list.length ? list.map(file => `
+        <article class="knowledge-card" data-knowledge-file="${escapeHtml(file.name)}"><div class="knowledge-file-main"><span class="knowledge-icon ${file.tone}"><svg class="icon"><use href="#${file.icon}"/></svg></span><div class="knowledge-copy"><h3>${escapeHtml(file.name)}</h3><p>${escapeHtml(file.desc)}</p></div></div><div class="knowledge-meta"><span>${escapeHtml(file.category)} · ${escapeHtml(file.size)}</span><span>${escapeHtml(file.date)}</span></div></article>`).join('') : '<div class="knowledge-empty">没有找到符合条件的文件</div>';
+    }
+
+    function showKnowledgePage() {
+      state.generationToken++;
+      setLayoutState('knowledge');
+      ['homeView','chatView','expertPage','skillPage','automationPage','productionPage','designPage'].forEach(id => $('#' + id).classList.add('view-hidden'));
+      $('#knowledgePage').classList.remove('view-hidden');
+      $('#appShell').classList.add('right-collapsed');
+      $('#taskDrawer').classList.remove('open');
+      $('#taskDrawer').setAttribute('aria-hidden', 'true');
+      $$('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === '知识库'));
+      renderKnowledgePage();
+    }
+
+    function showSkillSquare() {
+      state.generationToken++;
+      setLayoutState('skills');
+      $('#homeView').classList.add('view-hidden');
+      $('#chatView').classList.add('view-hidden');
+      $('#expertPage').classList.add('view-hidden');
+      $('#automationPage').classList.add('view-hidden');
+      $('#productionPage').classList.add('view-hidden');
+      $('#knowledgePage').classList.add('view-hidden');
+      $('#skillPage').classList.remove('view-hidden');
+      $('#designPage').classList.add('view-hidden');
+      $('#appShell').classList.add('right-collapsed');
+      $('#taskDrawer').classList.remove('open');
+      $('#taskDrawer').setAttribute('aria-hidden', 'true');
+      $$('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === '技能广场'));
+      renderSkillSquare();
+    }
+
     function syncConversationChrome() {
       const workspace = $('.workspace');
       const dock = workspace && $('.composer-dock', workspace);
@@ -2685,7 +3093,12 @@
       setLayoutState('experts');
       $('#homeView').classList.add('view-hidden');
       $('#chatView').classList.add('view-hidden');
+      $('#skillPage').classList.add('view-hidden');
+      $('#automationPage').classList.add('view-hidden');
+      $('#productionPage').classList.add('view-hidden');
+      $('#knowledgePage').classList.add('view-hidden');
       $('#expertPage').classList.remove('view-hidden');
+      $('#designPage').classList.add('view-hidden');
       $('#appShell').classList.add('right-collapsed');
       $('#taskDrawer').classList.remove('open');
       $('#taskDrawer').setAttribute('aria-hidden', 'true');
@@ -2728,6 +3141,10 @@
       $('#homeView').classList.remove('view-hidden');
       $('#chatView').classList.add('view-hidden');
       $('#expertPage').classList.add('view-hidden');
+      $('#automationPage').classList.add('view-hidden');
+      $('#productionPage').classList.add('view-hidden');
+      $('#knowledgePage').classList.add('view-hidden');
+      $('#designPage').classList.add('view-hidden');
       $('#appShell').classList.remove('right-collapsed');
       $('#mainScroll').scrollTop = 0;
       replayHomeComposerEntrance();
@@ -2739,9 +3156,16 @@
       $('#homeView').classList.add('view-hidden');
       $('#chatView').classList.remove('view-hidden');
       $('#expertPage').classList.add('view-hidden');
+      $('#skillPage').classList.add('view-hidden');
+      $('#automationPage').classList.add('view-hidden');
+      $('#productionPage').classList.add('view-hidden');
+      $('#knowledgePage').classList.add('view-hidden');
+      $('#designPage').classList.add('view-hidden');
       $('#appShell').classList.add('right-collapsed');
-      $('#activeChatTitle').textContent = title || '新对话';
-      $('#activeExpertLabel').textContent = `${expert} · ${state.selectedSkill}`;
+       const activeChatTitle = $('#activeChatTitle');
+       const activeExpertLabel = $('#activeExpertLabel');
+       if (activeChatTitle) activeChatTitle.textContent = title || '新对话';
+       if (activeExpertLabel) activeExpertLabel.textContent = `${expert} · ${state.selectedSkill}`;
       $('#chatModeLabel').textContent = state.selectedMode;
       $('#chatThinkLabel').textContent = state.selectedThink;
       $('#chatSkillLabel').textContent = state.selectedSkill;
@@ -3198,12 +3622,11 @@
       if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); runGeneration($('#taskInput').value); }
     });
     $('#startTask').addEventListener('click', () => runGeneration($('#taskInput').value));
-    $$('.quick-prompt').forEach(button => button.addEventListener('click', () => { $('#taskInput').value = button.dataset.prompt; autoResize($('#taskInput')); $('#taskInput').focus(); }));
     $$('.capability').forEach(button => button.addEventListener('click', () => { $('#taskInput').value = button.dataset.prompt; autoResize($('#taskInput')); if (button.dataset.capability) { state.selectedSkill = button.dataset.capability; $('#skillLabel').textContent = button.dataset.capability; } showHome(); $('#taskInput').focus(); if (window.innerWidth <= 1120) $('#rightPanel').classList.remove('mobile-open'); }));
 
     // 附件演示
     function openFilePicker() { $('#fileInput').click(); }
-    $('#attachButton').addEventListener('click', openFilePicker);
+    $('#attachButton')?.addEventListener('click', openFilePicker);
     $('#uploadEntry')?.addEventListener('click', openFilePicker);
     $('#chatAttachButton').addEventListener('click', openFilePicker);
     $('#fileInput').addEventListener('change', () => {
@@ -3230,7 +3653,7 @@
     $('#themeToggle')?.addEventListener('click', () => applyTheme(state.theme === 'dark' ? 'light' : 'dark'));
     $('#chatSearch').addEventListener('input', event => renderChats(event.target.value));
     $('#chatList').addEventListener('click', event => { const item = event.target.closest('[data-chat-id]'); if (item) selectConversation(Number(item.dataset.chatId)); });
-    $('#backHome').addEventListener('click', showHome);
+    $('#backHome')?.addEventListener('click', showHome);
     $$('[data-action="home"]').forEach(button => button.addEventListener('click', showHome));
 
     // 侧栏收起与移动端面板
@@ -3242,6 +3665,7 @@
       if (window.innerWidth <= 820) $('#historyPanel').classList.toggle('mobile-open');
       else setSidebarCollapsed(false);
     });
+    $('#topNewChat').addEventListener('click', () => startNewConversation());
     $('#mobileRightToggle').addEventListener('click', () => $('#rightPanel').classList.toggle('mobile-open'));
 
     // 一级导航：专家库进入完整页面，其余入口保留案例反馈
@@ -3253,6 +3677,11 @@
         else showHome();
       }
       else if (button.dataset.nav === '专家库') showExpertLibrary();
+      else if (button.dataset.nav === '技能广场') showSkillSquare();
+      else if (button.dataset.nav === '自动化') showAutomationPage();
+      else if (button.dataset.nav === 'AI生产') showProductionPage();
+      else if (button.dataset.nav === 'AI设计') showDesignPage();
+      else if (button.dataset.nav === '知识库') showKnowledgePage();
       else toast(`${button.dataset.nav}模块为案例扩展入口`);
     }));
     $$('[data-nav-shortcut]').forEach(button => button.addEventListener('click', () => toast(`${button.dataset.navShortcut}模块为案例扩展入口`)));
@@ -3274,6 +3703,23 @@
       if (use) startExpert(expert);
       else openExpertDetail(index);
     });
+    $('#skillSearch').addEventListener('input', event => { state.skillSearch = event.target.value; renderSkillSquare(); });
+    $('#skillFilters').addEventListener('click', event => { const filter = event.target.closest('[data-skill-filter]'); if (!filter) return; state.skillFilter = filter.dataset.skillFilter; $$('.skill-filter').forEach(item => item.classList.toggle('active', item === filter)); renderSkillSquare(); });
+    $('#skillGrid').addEventListener('click', event => { const action = event.target.closest('[data-skill-action]'); if (action) toast(`${action.dataset.skillAction}：${action.textContent === '配置' ? '已打开配置入口' : '已添加到我的技能'}`, 'success'); });
+    $('#automationSearch').addEventListener('input', event => { state.automationSearch = event.target.value; renderAutomationPage(); });
+    $('#automationFilters').addEventListener('click', event => { const filter = event.target.closest('[data-automation-filter]'); if (!filter) return; state.automationFilter = filter.dataset.automationFilter; $$('.automation-filter').forEach(item => item.classList.toggle('active', item === filter)); renderAutomationPage(); });
+    $('#automationTemplateGrid').addEventListener('click', event => { const card = event.target.closest('[data-template-name]'); if (card) toast(`已选择模板：${card.dataset.templateName}`, 'success'); });
+    $('#automationTaskGrid').addEventListener('click', event => { const action = event.target.closest('[data-automation-action]'); if (action) toast(`${action.dataset.automationAction}：操作入口已打开`, 'success'); });
+    $('#automationCreateButton').addEventListener('click', () => toast('新建自动化：创建流程入口已准备好'));
+    $('#productionSearch').addEventListener('input', event => { state.productionSearch = event.target.value; renderProductionPage(); });
+    $('#productionFilters').addEventListener('click', event => { const filter = event.target.closest('[data-production-filter]'); if (!filter) return; state.productionFilter = filter.dataset.productionFilter; $$('.production-filter').forEach(item => item.classList.toggle('active', item === filter)); renderProductionPage(); });
+    $('#productionGrid').addEventListener('click', event => { const action = event.target.closest('[data-production-action]'); if (!action) return; if (action.classList.contains('upcoming')) toast(`${action.dataset.productionAction}即将上线`); else toast(`正在进入${action.dataset.productionAction}`, 'success'); });
+    $('#designGrid').addEventListener('click', event => { const action = event.target.closest('[data-design-action]'); if (action) toast(`正在进入${action.dataset.designAction}`, 'success'); });
+    $('#knowledgeSearch').addEventListener('input', event => { state.knowledgeSearch = event.target.value; renderKnowledgePage(); });
+    $('#knowledgeFilters').addEventListener('click', event => { const filter = event.target.closest('[data-knowledge-filter]'); if (!filter) return; state.knowledgeFilter = filter.dataset.knowledgeFilter; $$('.knowledge-filter').forEach(item => item.classList.toggle('active', item === filter)); renderKnowledgePage(); });
+    $$('.knowledge-view-btn').forEach(button => button.addEventListener('click', () => { state.knowledgeView = button.dataset.knowledgeView; $$('.knowledge-view-btn').forEach(item => item.classList.toggle('active', item === button)); renderKnowledgePage(); }));
+    $('#knowledgeGrid').addEventListener('click', event => { const card = event.target.closest('[data-knowledge-file]'); if (card) toast(`已打开：${card.dataset.knowledgeFile}`, 'success'); });
+    $('#knowledgeUpload').addEventListener('click', () => toast('上传文件入口已准备好'));
     $('#closeExpertDetail').addEventListener('click', () => $('#expertDetailOverlay').classList.remove('open'));
     $('#expertDetailOverlay').addEventListener('click', event => { if (event.target === $('#expertDetailOverlay') || event.target.closest('[data-close-detail]')) $('#expertDetailOverlay').classList.remove('open'); const use = event.target.closest('[data-detail-use]'); if (use) startExpert(state.experts[Number(use.dataset.detailUse)]); });
 
@@ -3306,6 +3752,10 @@
     // 初始化
     renderChats();
     renderExperts();
+    renderAutomationPage();
+    renderProductionPage();
+    renderDesignPage();
+    renderKnowledgePage();
     renderExpertLibrary();
     autoResize($('#taskInput'));
     setLayoutState('initial');
@@ -3507,6 +3957,105 @@
     html.dark .markdown-code-head { border-color: #3f3f46; }
     html.dark .code-copy { border-color: #52525b; color: #e4e4e7; background: #27272a; }
     html.dark .markdown-code { color: #e4e4e7; }
+    /* Skill Square: compact SCUD skill library, aligned with Expert Database. */
+    .skill-page { position: relative; z-index: 1; width: min(1280px,100%); height: 100%; margin: 0 auto; overflow-y: auto; padding: 28px 24px 36px; scrollbar-width: thin; }
+    .skill-page:not(.view-hidden) { animation: layoutEnter .32s var(--ease) both; }
+    .skill-page-head { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+    .skill-page-head h1 { margin: 0 0 7px; color: var(--ink); font-size: 24px; line-height: 1.25; font-weight: 800; letter-spacing: -.3px; }
+    .skill-page-head p { margin: 0; color: var(--muted); font-size: 13px; }
+    .skill-create-btn { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 15px; border: 0; border-radius: 11px; color: #fff; background: #E60012; font-size: 12px; font-weight: 700; box-shadow: 0 9px 20px rgba(230,0,18,.18); cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; white-space: nowrap; }
+    .skill-create-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(230,0,18,.24); }
+    .skill-tools { display: grid; grid-template-columns: minmax(260px,1fr) auto; align-items: center; gap: 14px; margin-bottom: 20px; }
+    .skill-search { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 12px; color: var(--muted); background: #fff; }
+    .skill-search:focus-within { border-color: rgba(230,0,18,.45); box-shadow: 0 0 0 3px rgba(230,0,18,.06); }
+    .skill-search input { width: 100%; height: 40px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 12px; }
+    .skill-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px; padding: 4px; border-radius: 12px; background: #f3f5f8; }
+    .skill-filter { height: 32px; padding: 0 11px; border: 0; border-radius: 999px; color: var(--muted); background: transparent; font-size: 11px; font-weight: 600; cursor: pointer; transition: .16s ease; }
+    .skill-filter:hover { color: #E60012; background: rgba(230,0,18,.06); }
+    .skill-filter.active { color: #E60012; background: #fff; box-shadow: 0 4px 12px rgba(30,38,54,.06); }
+    .skill-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
+    .skill-card { min-height: 190px; display: flex; flex-direction: column; padding: 16px; border: 1px solid #eef0f3; border-radius: 16px; background: #fff; cursor: default; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .skill-card:hover { transform: translateY(-3px); border-color: rgba(230,0,18,.18); box-shadow: 0 12px 28px rgba(28,38,54,.09); }
+    .skill-card-head, .skill-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .skill-icon-box { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; color: #2563eb; background: #eff6ff; }
+    .skill-icon-box.purple { color: #7c3aed; background: #f3e8ff; }
+    .skill-icon-box.green { color: #059669; background: #ecfdf5; }
+    .skill-icon-box.orange { color: #ea580c; background: #fff7ed; }
+    .skill-icon-box.red { color: #E60012; background: #fff1f2; }
+    .skill-status { padding: 4px 8px; border-radius: 999px; color: #64748b; background: #f1f5f9; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .skill-status.enabled { color: #047857; background: #ecfdf5; }
+    .skill-card h3 { margin: 16px 0 6px; color: var(--ink); font-size: 15px; line-height: 1.35; }
+    .skill-card p { display: -webkit-box; margin: 0; overflow: hidden; color: var(--muted); font-size: 11px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .skill-card-foot { margin-top: auto; padding-top: 18px; }
+    .skill-category { color: var(--muted); font-size: 10px; }
+    .skill-action { height: 30px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 9px; color: #475569; background: #f8fafc; font-size: 10px; font-weight: 700; cursor: pointer; }
+    .skill-action:hover { color: #E60012; border-color: rgba(230,0,18,.24); background: #fff5f6; }
+    html.dark .skill-page-head h1, html.dark .skill-card h3 { color: #f4f4f5; }
+    html.dark .skill-search, html.dark .skill-card { border-color: #3f3f46; background: #18181b; }
+    html.dark .skill-search input { color: #f4f4f5; }
+    html.dark .skill-filters { background: #27272a; }
+    html.dark .skill-filter.active { background: #3f3f46; }
+    html.dark .skill-action { border-color: #52525b; color: #d4d4d8; background: #27272a; }
+    @media (max-width: 1100px) { .skill-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .skill-tools { grid-template-columns: 1fr; } .skill-filters { justify-content: flex-start; } }
+    @media (max-width: 640px) { .skill-page { padding-inline: 12px; } .skill-page-head { align-items: flex-start; flex-direction: column; } .skill-grid { grid-template-columns: 1fr; } }
+
+    /* Automation workspace: a compact, SCUD-red operations overview. */
+    .automation-page { position: relative; z-index: 1; width: min(1280px,100%); height: 100%; margin: 0 auto; overflow-y: auto; padding: 28px 24px 40px; scrollbar-width: thin; }
+    .automation-page:not(.view-hidden) { animation: layoutEnter .32s var(--ease) both; }
+    .automation-page-head, .automation-section-head { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .automation-page-head { margin-bottom: 22px; }
+    .automation-eyebrow { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 9px; padding: 5px 9px; border-radius: 999px; color: #b45309; background: #fff4e6; font-size: 11px; font-weight: 700; }
+    .automation-page-head h1 { margin: 0 0 7px; color: var(--ink); font-size: 24px; line-height: 1.25; font-weight: 800; letter-spacing: -.3px; }
+    .automation-page-head p, .automation-section-head p { margin: 0; color: var(--muted); font-size: 13px; }
+    .automation-create-btn { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 15px; border: 0; border-radius: 11px; color: #fff; background: #E60012; font-size: 12px; font-weight: 700; box-shadow: 0 9px 20px rgba(230,0,18,.18); cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; white-space: nowrap; }
+    .automation-create-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(230,0,18,.24); }
+    .automation-metric-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; margin-bottom: 30px; }
+    .automation-metric-card { display: flex; align-items: center; justify-content: space-between; min-height: 104px; padding: 18px; border: 1px solid #eef0f3; border-radius: 16px; background: #fff; box-shadow: 0 8px 22px rgba(28,38,54,.045); }
+    .automation-metric-card div { display: flex; flex-direction: column; gap: 3px; }
+    .automation-metric-card strong { color: var(--ink); font-size: 26px; line-height: 1; }
+    .automation-metric-card span:not(.automation-metric-icon) { color: var(--ink); font-size: 13px; font-weight: 700; }
+    .automation-metric-card small { color: var(--muted); font-size: 11px; }
+    .automation-metric-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; }
+    .metric-green { color: #059669; background: #ecfdf5; }.metric-yellow { color: #d97706; background: #fff7ed; }.metric-red { color: #E60012; background: #fff1f2; }.metric-blue { color: #2563eb; background: #eff6ff; }
+    .automation-section { margin-bottom: 30px; }
+    .automation-section-head { margin-bottom: 14px; }
+    .automation-section-head h2 { margin: 0 0 5px; color: var(--ink); font-size: 17px; line-height: 1.3; }
+    .automation-recommend-badge { padding: 6px 10px; border-radius: 999px; color: #b45309; background: #fff4e6; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .automation-template-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 14px; }
+    .automation-template-card { min-height: 164px; display: flex; flex-direction: column; padding: 15px; border: 1px solid #eef0f3; border-radius: 16px; background: #fff; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .automation-template-card:hover { transform: translateY(-3px); border-color: rgba(230,0,18,.18); box-shadow: 0 12px 28px rgba(28,38,54,.09); }
+    .automation-template-top { display: flex; align-items: center; justify-content: space-between; }.automation-template-arrow { color: #94a3b8; }
+    .automation-template-icon, .automation-task-icon { display: grid; place-items: center; border-radius: 11px; }.automation-template-icon { width: 36px; height: 36px; }.automation-template-icon.blue, .automation-task-icon.blue { color: #2563eb; background: #eff6ff; }.automation-template-icon.purple { color: #7c3aed; background: #f3e8ff; }.automation-template-icon.orange, .automation-task-icon.orange { color: #ea580c; background: #fff7ed; }.automation-template-icon.green { color: #059669; background: #ecfdf5; }.automation-template-icon.red, .automation-task-icon.red { color: #E60012; background: #fff1f2; }.automation-task-icon.green { color: #059669; background: #ecfdf5; }
+    .automation-template-card h3 { margin: 16px 0 6px; color: var(--ink); font-size: 14px; line-height: 1.3; }.automation-template-card p { display: -webkit-box; margin: 0; overflow: hidden; color: var(--muted); font-size: 11px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }.automation-template-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; padding-top: 14px; }.automation-template-tags span { padding: 4px 7px; border-radius: 7px; color: #64748b; background: #f8fafc; font-size: 10px; }
+    .automation-task-tools { display: grid; grid-template-columns: minmax(260px,1fr) auto; gap: 14px; margin-bottom: 14px; }.automation-search { display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 12px; color: var(--muted); background: #fff; }.automation-search:focus-within { border-color: rgba(230,0,18,.45); box-shadow: 0 0 0 3px rgba(230,0,18,.06); }.automation-search input { width: 100%; height: 38px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 12px; }.automation-filters { display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 12px; background: #f3f5f8; }.automation-filter { height: 30px; padding: 0 11px; border: 0; border-radius: 999px; color: var(--muted); background: transparent; font-size: 11px; font-weight: 600; cursor: pointer; }.automation-filter.active { color: #E60012; background: #fff; box-shadow: 0 4px 12px rgba(30,38,54,.06); }
+    .automation-task-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }.automation-task-card { display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: 12px; padding: 15px; border: 1px solid #eef0f3; border-radius: 16px; background: #fff; box-shadow: 0 7px 18px rgba(28,38,54,.035); }.automation-task-icon { width: 36px; height: 36px; }.automation-task-copy { min-width: 0; }.automation-task-copy h3 { margin: 1px 0 5px; color: var(--ink); font-size: 13px; }.automation-task-copy p { display: -webkit-box; margin: 0 0 10px; overflow: hidden; color: var(--muted); font-size: 11px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }.automation-task-meta { display: flex; flex-wrap: wrap; gap: 7px; color: var(--muted); font-size: 10px; }.automation-status { font-weight: 700; }.automation-status.running { color: #059669; }.automation-status.paused { color: #d97706; }.automation-status.failed { color: #E60012; }.automation-task-action { align-self: center; height: 29px; padding: 0 9px; border: 1px solid #e5e7eb; border-radius: 9px; color: #475569; background: #f8fafc; font-size: 10px; font-weight: 700; cursor: pointer; }.automation-task-action:hover { color: #E60012; border-color: rgba(230,0,18,.24); background: #fff5f6; }.automation-empty { grid-column: 1/-1; padding: 42px; text-align: center; color: var(--muted); font-size: 12px; }
+    html.dark .automation-page-head h1, html.dark .automation-section-head h2, html.dark .automation-metric-card strong, html.dark .automation-metric-card span:not(.automation-metric-icon), html.dark .automation-template-card h3, html.dark .automation-task-copy h3 { color: #f4f4f5; } html.dark .automation-metric-card, html.dark .automation-template-card, html.dark .automation-task-card, html.dark .automation-search { border-color: #3f3f46; background: #18181b; } html.dark .automation-search input { color: #f4f4f5; } html.dark .automation-filters { background: #27272a; } html.dark .automation-filter.active { background: #3f3f46; } html.dark .automation-task-action { border-color: #52525b; color: #d4d4d8; background: #27272a; } html.dark .automation-template-tags span { color: #a1a1aa; background: #27272a; }
+    @media (max-width: 1100px) { .automation-metric-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.automation-template-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.automation-task-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.automation-task-tools { grid-template-columns: 1fr; }.automation-filters { justify-content: flex-start; } }
+    @media (max-width: 640px) { .automation-page { padding-inline: 12px; }.automation-page-head, .automation-section-head { align-items: flex-start; flex-direction: column; }.automation-metric-grid, .automation-template-grid, .automation-task-grid { grid-template-columns: 1fr; } }
+
+    /* AI Production: mint-green entry surface with the shared SCUD card language. */
+    .production-page { position: relative; z-index: 1; width: min(1280px,100%); height: 100%; margin: 0 auto; overflow-y: auto; padding: 30px 24px 42px; scrollbar-width: thin; }
+    .production-page:not(.view-hidden) { animation: layoutEnter .32s var(--ease) both; }
+    .production-page-head { margin-bottom: 22px; }.production-eyebrow { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 9px; padding: 5px 9px; border-radius: 999px; color: #047857; background: #dff8ed; font-size: 11px; font-weight: 700; }.production-page-head h1 { margin: 0 0 7px; color: var(--ink); font-size: 24px; line-height: 1.25; font-weight: 800; letter-spacing: -.3px; }.production-page-head p { margin: 0; color: var(--muted); font-size: 13px; }
+    .production-tools { display: grid; grid-template-columns: minmax(260px,1fr) auto; align-items: center; gap: 14px; margin-bottom: 22px; }.production-search { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 12px; color: var(--muted); background: #fff; }.production-search:focus-within { border-color: rgba(5,150,105,.42); box-shadow: 0 0 0 3px rgba(5,150,105,.08); }.production-search input { width: 100%; height: 40px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 12px; }.production-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 4px; border-radius: 12px; background: #eff7f3; }.production-filter { height: 32px; padding: 0 12px; border: 0; border-radius: 999px; color: #587066; background: transparent; font-size: 11px; font-weight: 600; cursor: pointer; transition: .16s ease; }.production-filter:hover { color: #047857; background: #e1f5eb; }.production-filter.active { color: #fff; background: #059669; box-shadow: 0 6px 12px rgba(5,150,105,.18); }
+    .production-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }.production-card { min-height: 220px; display: flex; flex-direction: column; padding: 18px; border: 1px solid #eef0f3; border-radius: 16px; background: #fff; box-shadow: 0 8px 22px rgba(28,38,54,.045); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }.production-card:hover { transform: translateY(-3px); border-color: rgba(5,150,105,.22); box-shadow: 0 14px 28px rgba(28,38,54,.09); }.production-card.is-upcoming { opacity: .92; }.production-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }.production-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; }.production-icon.blue { color: #2563eb; background: #eff6ff; }.production-icon.green { color: #059669; background: #ecfdf5; }.production-icon.orange { color: #ea580c; background: #fff7ed; }.production-icon.cyan { color: #0891b2; background: #ecfeff; }.production-icon.purple { color: #7c3aed; background: #f3e8ff; }.production-icon.pink { color: #db2777; background: #fdf2f8; }.production-status { padding: 5px 9px; border-radius: 999px; color: #64748b; background: #f1f5f9; font-size: 10px; font-weight: 700; }.production-card:not(.is-upcoming) .production-status { color: #047857; background: #ecfdf5; }.production-card h3 { margin: 18px 0 7px; color: var(--ink); font-size: 16px; line-height: 1.35; }.production-card p { display: -webkit-box; margin: 0; overflow: hidden; color: var(--muted); font-size: 12px; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }.production-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 20px; }.production-category { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 11px; }.production-action { height: 32px; padding: 0 12px; border: 0; border-radius: 9px; font-size: 11px; font-weight: 700; cursor: pointer; }.production-action.available { color: #059669; background: #ecfdf5; }.production-action.available:hover { color: #fff; background: #059669; }.production-action.upcoming { color: #9ca3af; background: #f1f3f5; cursor: not-allowed; }.production-empty { grid-column: 1/-1; padding: 52px; text-align: center; color: var(--muted); font-size: 12px; }
+    html.dark .production-page-head h1, html.dark .production-card h3 { color: #f4f4f5; } html.dark .production-search, html.dark .production-card { border-color: #3f3f46; background: #18181b; } html.dark .production-search input { color: #f4f4f5; } html.dark .production-filters { background: #13251f; } html.dark .production-filter { color: #a7c5b8; } html.dark .production-filter.active { color: #fff; background: #059669; } html.dark .production-action.upcoming { color: #71717a; background: #27272a; }
+    @media (max-width: 900px) { .production-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.production-tools { grid-template-columns: 1fr; }.production-filters { justify-content: flex-start; } }
+    @media (max-width: 640px) { .production-page { padding-inline: 12px; }.production-grid { grid-template-columns: 1fr; } }
+
+    /* AI Design: blue SCUD companion surface for structure, circuit, software and process work. */
+    .design-page { position: relative; z-index: 1; width: min(1280px,100%); height: 100%; margin: 0 auto; overflow-y: auto; padding: 30px 24px 42px; background: #FAFCFF; scrollbar-width: thin; }
+    .design-page:not(.view-hidden) { animation: layoutEnter .32s var(--ease) both; }
+    .design-page-head { margin-bottom: 22px; }.design-eyebrow { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 9px; padding: 5px 9px; border: 1px solid rgba(59,130,246,.15); border-radius: 999px; color: #2563eb; background: #eff6ff; font-size: 11px; font-weight: 700; }.design-page-head h1 { margin: 0 0 7px; color: #111827; font-size: 24px; line-height: 1.25; font-weight: 800; letter-spacing: -.3px; }.design-page-head p { margin: 0; color: #9ca3af; font-size: 13px; }
+    .design-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; padding-top: 2px; }.design-card { min-height: 224px; display: flex; flex-direction: column; justify-content: space-between; padding: 22px; border: 1px solid #eef0f3; border-radius: 16px; background: #fff; box-shadow: 0 2px 4px rgba(28,38,54,.025); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }.design-card:hover { transform: translateY(-3px); border-color: rgba(59,130,246,.22); box-shadow: 0 14px 28px rgba(28,38,54,.09); }.design-card.is-upcoming { opacity: .92; }.design-card-top, .design-card-foot, .design-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }.design-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 13px; color: #fff; }.design-icon.blue { background: #3b82f6; }.design-icon.green { background: #10b981; }.design-icon.indigo { background: #6366f1; }.design-icon.orange { background: #f97316; }.design-rating { display: inline-flex; align-items: center; gap: 4px; padding: 5px 8px; border: 1px solid rgba(245,158,11,.16); border-radius: 999px; color: #d97706; background: #fffbeb; font-size: 11px; font-weight: 700; }.design-title-row { justify-content: flex-start; align-items: baseline; margin-bottom: 7px; }.design-card-copy { margin-top: 18px; }.design-card h3 { margin: 0; color: #111827; font-size: 17px; line-height: 1.35; }.design-title-row span { color: #2563eb; font-size: 11px; font-weight: 600; }.design-card p { display: -webkit-box; margin: 0; overflow: hidden; color: #9ca3af; font-size: 12px; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }.design-card-foot { margin-top: 20px; padding-top: 15px; border-top: 1px solid #f3f4f6; }.design-status { display: inline-flex; align-items: center; gap: 5px; color: #9ca3af; font-size: 11px; font-weight: 600; }.design-status.available { color: #10b981; }.design-status.available svg { fill: currentColor; }.design-action { height: 32px; padding: 0 16px; border: 0; border-radius: 11px; font-size: 11px; font-weight: 600; }.design-action.available { color: #2563eb; background: #eff6ff; cursor: pointer; }.design-action.available:hover { color: #fff; background: #2563eb; }.design-action.upcoming { color: #9ca3af; background: #f3f4f6; cursor: not-allowed; }
+    html.dark .design-page { background: #0f172a; } html.dark .design-page-head h1, html.dark .design-card h3 { color: #f4f4f5; } html.dark .design-card { border-color: #334155; background: #18181b; } html.dark .design-card-foot { border-color: #27272a; } html.dark .design-action.upcoming { color: #71717a; background: #27272a; }
+    @media (max-width: 700px) { .design-page { padding-inline: 12px; }.design-grid { grid-template-columns: 1fr; } }
+
+    /* Knowledge Base: purple document library with grid/list view switching. */
+    .knowledge-page { position: relative; z-index: 1; width: min(1280px,100%); height: 100%; margin: 0 auto; overflow-y: auto; padding: 30px 24px 42px; background: #FAFCFF; scrollbar-width: thin; }.knowledge-page:not(.view-hidden) { animation: layoutEnter .32s var(--ease) both; }.knowledge-page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 22px; }.knowledge-eyebrow { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 9px; padding: 5px 9px; border: 1px solid rgba(124,58,237,.15); border-radius: 999px; color: #7c3aed; background: #f3e8ff; font-size: 11px; font-weight: 700; }.knowledge-page-head h1 { margin: 0 0 7px; color: var(--ink); font-size: 24px; line-height: 1.25; font-weight: 800; }.knowledge-page-head p { margin: 0; color: var(--muted); font-size: 13px; }.knowledge-upload { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 15px; border: 0; border-radius: 11px; color: #fff; background: #2563eb; font-size: 12px; font-weight: 700; box-shadow: 0 9px 20px rgba(37,99,235,.18); cursor: pointer; }.knowledge-upload:hover { background: #1d4ed8; }.knowledge-tools { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 20px; }.knowledge-search { display: flex; align-items: center; gap: 9px; width: min(380px,100%); min-height: 42px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 12px; color: var(--muted); background: #fff; }.knowledge-search:focus-within { border-color: rgba(37,99,235,.42); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }.knowledge-search input { width: 100%; height: 38px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 12px; }.knowledge-tool-right { display: flex; align-items: center; gap: 10px; }.knowledge-filters, .knowledge-view-toggle { display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 12px; background: #f3f5f8; }.knowledge-filter { height: 30px; padding: 0 10px; border: 0; border-radius: 9px; color: var(--muted); background: transparent; font-size: 11px; font-weight: 600; cursor: pointer; }.knowledge-filter.active, .knowledge-view-btn.active { color: #2563eb; background: #fff; box-shadow: 0 4px 12px rgba(30,38,54,.06); }.knowledge-view-btn { display: grid; place-items: center; width: 29px; height: 29px; border: 0; border-radius: 8px; color: var(--muted); background: transparent; cursor: pointer; }.knowledge-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }.knowledge-card { min-height: 178px; display: flex; flex-direction: column; justify-content: space-between; padding: 17px; border: 1px solid #eef0f3; border-radius: 16px; background: #fff; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }.knowledge-card:hover { transform: translateY(-3px); border-color: rgba(37,99,235,.2); box-shadow: 0 12px 28px rgba(28,38,54,.09); }.knowledge-file-main { min-width: 0; }.knowledge-icon { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 13px; border-radius: 12px; }.knowledge-icon.purple { color: #7c3aed; background: #f3e8ff; }.knowledge-icon.blue { color: #2563eb; background: #eff6ff; }.knowledge-copy h3 { margin: 0 0 6px; overflow: hidden; color: var(--ink); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }.knowledge-copy p { display: -webkit-box; margin: 0; overflow: hidden; color: var(--muted); font-size: 11px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }.knowledge-meta { display: flex; justify-content: space-between; gap: 10px; padding-top: 13px; border-top: 1px solid #f3f4f6; color: var(--muted); font-size: 10px; }.knowledge-grid.is-list { grid-template-columns: 1fr; gap: 9px; }.knowledge-grid.is-list .knowledge-card { min-height: auto; flex-direction: row; align-items: center; gap: 16px; }.knowledge-grid.is-list .knowledge-icon { flex: 0 0 40px; margin-bottom: 0; }.knowledge-grid.is-list .knowledge-file-main { display: flex; align-items: center; gap: 13px; flex: 1; }.knowledge-grid.is-list .knowledge-meta { min-width: 220px; padding-top: 0; border-top: 0; justify-content: flex-end; }.knowledge-empty { grid-column: 1/-1; padding: 52px; text-align: center; color: var(--muted); font-size: 12px; }
+    html.dark .knowledge-page { background: #0f172a; } html.dark .knowledge-page-head h1, html.dark .knowledge-copy h3 { color: #f4f4f5; } html.dark .knowledge-search, html.dark .knowledge-card { border-color: #334155; background: #18181b; } html.dark .knowledge-search input { color: #f4f4f5; } html.dark .knowledge-filters, html.dark .knowledge-view-toggle { background: #27272a; } html.dark .knowledge-filter.active, html.dark .knowledge-view-btn.active { background: #3f3f46; }.knowledge-grid.is-list .knowledge-meta { color: var(--muted); }
+    @media (max-width: 1100px) { .knowledge-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.knowledge-tools { align-items: flex-start; flex-direction: column; }.knowledge-search { width: 100%; }.knowledge-tool-right { width: 100%; justify-content: space-between; } }
+    @media (max-width: 640px) { .knowledge-page { padding-inline: 12px; }.knowledge-page-head { flex-direction: column; }.knowledge-grid { grid-template-columns: 1fr; }.knowledge-grid.is-list .knowledge-card { align-items: flex-start; flex-direction: column; }.knowledge-grid.is-list .knowledge-meta { width: 100%; min-width: 0; padding-top: 10px; border-top: 1px solid #f3f4f6; justify-content: space-between; } }
   </style>
   <script>
     /* Turn the bottom follow-up controls into the same dropdown-style controls as the hero composer. */
